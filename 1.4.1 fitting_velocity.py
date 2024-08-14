@@ -105,7 +105,7 @@ ax3.yaxis.set_tick_params(labelright=False)
 ax3.yaxis.set_minor_locator(ticker.MultipleLocator(5))
 os.makedirs('Results/fitting_velocity/', exist_ok=True)
 plt.savefig(f'Results/fitting_velocity/fig_6e_{dtdt}.png',bbox_inches='tight', dpi=100)
-plt.show()
+
 
 
 
