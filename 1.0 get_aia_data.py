@@ -1,25 +1,21 @@
-# -*- coding: utf-8 -*-
 """
-Created on Tue Feb 20 14:47:46 2024
-
-@author: WIN 11
+To download only AIA data automatically.
+The data is saved in a new 'Data' directory.
+Change y, m, d, typ, and H based on your preference.
 """
 
 import requests
 from bs4 import BeautifulSoup
 import os
 
-y = 2024
+y = 2012
 m = 3
-d = 10 # 9, 10, 11, 12
-# H = 0 # 0 s.d. 23 
+d = 12
 typ= 'AIA304'
-
 def zfill(x):
     return str(x).zfill(2)
-
-#http://jsoc2.stanford.edu/data/aia/synoptic/2012/03/09/H0000/AIA20120309_0000_0304.fits
-for H in range(14,16,1):
+## data source: http://jsoc2.stanford.edu/data/aia/synoptic/2012/03/09/H0000/AIA20120309_0000_0304.fits
+for H in range(0,4,1):   ## H means hours, 0 is counted, 4 is not counted, 1 is step
     tanggal_aia = f'{y}/{zfill(m)}/{zfill(d)}/H{zfill(H)}00'
     aia_url = f'http://jsoc2.stanford.edu/data/aia/synoptic/{tanggal_aia}'
     page = requests.get(aia_url).text
