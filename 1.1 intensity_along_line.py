@@ -9,9 +9,9 @@ import matplotlib
 matplotlib.use('Agg')    ## don't display plot box
 dtdt = '20120312'        ## YYYYMMDD, usually day of the eruption
 ins = 'AIA304'           ## instrument
-data_list = os.listdir(f'Data/{ins}/{dtdt[:4]}/{dtdt[4:6]}')  ## using 'f' because there is a variable on string
+data_list = sorted(os.listdir(f'Data/{ins}/{dtdt[:4]}/{dtdt[4:6]}')) ## using 'f' because there is a variable on string
 df = pd.DataFrame()      ## empty dataframe array (only for several columns)
-ht = np.zeros([307,217]) ## empty numpy array (for huge array) with size 307x230 for main line; 307 is length of main lain (guess first), 230 is number of data in data_list
+ht = np.zeros([307,217]) ## empty numpy array (for huge array) with size 307x230 for main line; 307 is length of main lain (guess first), 207 is number of data in data_list
 def height_prom(i):
     AIA_304 = f'Data/{ins}/{dtdt[:4]}/{dtdt[4:6]}/{data_list[i]}'  ## i-th data
     aia_map = sunpy.map.Map(AIA_304)    ## read fits data
