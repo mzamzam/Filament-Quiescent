@@ -98,6 +98,6 @@ ax3.yaxis.set_tick_params(labelright=False)
 ax3.yaxis.set_minor_locator(ticker.MultipleLocator(10))
 os.makedirs('Results/fitting_height', exist_ok=True)
 plt.savefig(f'Results/fitting_height/fig_6d_{dtdt}.png',bbox_inches='tight', dpi=100)
-
+plt.show()
 
 
