@@ -4,7 +4,7 @@ This is not main code.
 Trials and errors for finding the right crop size and coordinate of our region of interest can be done here.
 Also, to find the right coordinate for the error lines (blue and green line).
 
-If you wish to add error lines, simply uncomment all the comment-lines and delete ''' on the line-49 and 61.
+If you wish to add error lines, simply uncomment all the commented-lines and delete ''' on the line-49 and 61.
 
 """
 import sunpy.map
