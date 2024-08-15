@@ -14,7 +14,7 @@ import matplotlib.dates as mdates
 dtdt = '20120312'
 ins = 'AIA304'
 data_list = sorted(os.listdir(f'Data/{ins}/{dtdt[:4]}/{dtdt[4:6]}'))
-AIA_304 = f'Data/{ins}/{dtdt[:4]}/{dtdt[4:6]}/{data_list[200]}'
+AIA_304 = f'Data/{ins}/{dtdt[:4]}/{dtdt[4:6]}/{data_list[50]}'
 aia_map = sunpy.map.Map(AIA_304)
 sun_rad = aia_map.meta['RSUN_OBS']   ## in arcsec
 sun_rad_ref = aia_map.meta['RSUN_REF']/1000   ## in km
@@ -33,7 +33,7 @@ start_time = dt_intensity.loc[1].date
 edge_coord_mid = pd.read_csv(f"Results/canny/edge_coord_{dtdt}.csv", index_col='Unnamed: 0')
 def model_ht(angular_separation, edge_coordinate):
     ang_sep = angular_separation
-    ang_sep['h_km'] = ang_sep.h_arcsec*one_arcsec_to_km
+    ang_sep['h_km'] = ang_sep.h_arcsec*round(one_arcsec_to_km)   ## not rounded, error raise easily
     edge_coord = edge_coordinate
     edge_coord['x_second'] = edge_coord.x_minute*60
     edge_coord['y_Mm'] = edge_coord['y'].apply(lambda i:ang_sep.loc[i].h_km)/1000
