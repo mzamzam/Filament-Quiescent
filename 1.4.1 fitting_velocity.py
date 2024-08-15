@@ -17,7 +17,6 @@ aia_map = sunpy.map.Map(AIA_304)
 sun_rad = aia_map.meta['RSUN_OBS'] #in arcsec
 sun_rad_ref = aia_map.meta['RSUN_REF']/1000 #in km
 one_arcsec_to_km = sun_rad_ref/sun_rad
-# scale = aia_map.scale[0].value
 def eq_h(t,c0,tau,c1,c2,t0):
     return c0 * np.exp((t-t0)/ tau) + c1 * (t-t0) + c2
 def t_ons(tau,c1,c0,t0):
@@ -32,6 +31,7 @@ dt_intensity = pd.read_csv(f"Results/intensity_along_line/datetime_intensity_{dt
 dt_intensity['minute'] = dt_intensity['date'].apply(lambda i:i - dt_intensity['date'][0])
 dt_intensity['minute'] = dt_intensity['minute'].apply(lambda i:i.seconds/60)
 start_time = dt_intensity.loc[1].date
+end_time = dt_intensity.loc[dt_intensity.shape[0]-1].date
 edge_coord_mid = pd.read_csv(f"Results/canny/edge_coord_{dtdt}.csv", index_col='Unnamed: 0')
 def model_v(angular_separation, edge_coordinate):
     ang_sep = angular_separation
@@ -64,10 +64,10 @@ def model_v(angular_separation, edge_coordinate):
 
     hv = dhdt_f(t_minute_model,c0=c0_opt,tau=tau_opt,c1=c1_opt,t0=t0_opt)
     hv = hv*1000/60 ## in km/s
-    return start_time, t_minute_model_dt, hv, t_onset_datetime, h_onset_Mm_model
+    return c0_opt,tau_opt,c1_opt,c2_opt,t0_opt, start_time, t_minute_model_dt, hv, t_onset_datetime, h_onset_Mm_model
 
-start_time, t_minute_model_dt, hv, t_onset_datetime, h_onset_Mm_model = model_v(ang_sep_mid, edge_coord_mid)
-
+c0_opt,tau_opt,c1_opt,c2_opt,t0_opt, start_time, t_minute_model_dt, hv, t_onset_datetime, h_onset_Mm_model = model_v(ang_sep_mid, edge_coord_mid)
+print(f'optimum parameter (c0, tau, c1, c2, t0): {round(c0_opt,3), round(tau_opt,3), round(c1_opt,3), round(c2_opt,3), round(t0_opt,3)}')
 print('onset time: {} UT'.format(t_onset_datetime.strftime('%Y/%m/%d %H:%M')))
 print(f'onset height: {h_onset_Mm_model} Mm')
 print(f'Initial slow rise velocity: {hv[0]} km s-1')
@@ -79,8 +79,8 @@ plt.rc('ytick', labelsize=12)
 plt.rc('axes', labelsize=12)
 
 ax.plot(t_minute_model_dt,hv, color='k')
-
-ax.set_xlim(start_time)
+ax.set_ylim(0,120)
+ax.set_xlim(start_time, end_time)
 ax.set_ylabel('Velocity (km $s^-1$)', fontsize=18)
 ax.set_xlabel('Start time = {}'.format(start_time.strftime('%Y/%m/%d %H:%M:%S')), fontsize=18)
 ax.text(dt_intensity.date[7],110,'(e)',fontsize=20)

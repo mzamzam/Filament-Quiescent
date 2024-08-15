@@ -30,6 +30,7 @@ dt_intensity = pd.read_csv(f"Results/intensity_along_line/datetime_intensity_{dt
 dt_intensity['minute'] = dt_intensity['date'].apply(lambda i:i - dt_intensity['date'][0])
 dt_intensity['minute'] = dt_intensity['minute'].apply(lambda i:i.seconds/60)
 start_time = dt_intensity.loc[1].date
+end_time = dt_intensity.loc[dt_intensity.shape[0]-1].date
 edge_coord_mid = pd.read_csv(f"Results/canny/edge_coord_{dtdt}.csv", index_col='Unnamed: 0')
 def model_ht(angular_separation, edge_coordinate):
     ang_sep = angular_separation
@@ -62,7 +63,7 @@ def model_ht(angular_separation, edge_coordinate):
     return c0_opt, tau_opt, c1_opt, c2_opt, t0_opt, t_minute_onset, t_onset_datetime, h_onset_Mm_model, h_onset_arcsec_datay, t_minute_model_dt, h_Mm_model, start_time, t_minute, h_Mm
     
 c0_opt, tau_opt, c1_opt, c2_opt, t0_opt, t_minute_onset, t_onset_datetime, h_onset_Mm_model, h_onset_arcsec_datay, t_minute_model_dt, h_Mm_model, start_time, t_minute, h_Mm = model_ht(ang_sep_mid, edge_coord_mid)
-
+print(f'optimum parameter (c0, tau, c1, c2, t0): {round(c0_opt,3), round(tau_opt,3), round(c1_opt,3), round(c2_opt,3), round(t0_opt,3)}')
 print('onset time: {} UT'.format(t_onset_datetime.strftime('%Y/%m/%d %H:%M')))
 print(f'onset height: {h_onset_Mm_model} Mm')
 
@@ -73,7 +74,7 @@ plt.rc('axes', labelsize=12)
 
 ax.plot(t_minute_model_dt,h_Mm_model,'k')
 ax.set_ylim(0,350)
-ax.set_xlim(start_time)
+ax.set_xlim(start_time, end_time)
 ax.set_ylabel('Height (Mm)', fontsize=18)
 ax.set_xlabel('Start time = {}'.format(start_time.strftime('%Y/%m/%d %H:%M:%S')), fontsize=18)
 
