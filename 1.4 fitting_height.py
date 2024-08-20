@@ -1,5 +1,5 @@
 """
-You can use chat-gpt to find p0 (line-47)
+You can use chat-gpt to find p0 (line-47) or from code 1.4.0
 """
 import numpy as np
 from scipy.optimize import curve_fit
