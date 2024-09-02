@@ -17,7 +17,7 @@ aia_map = sunpy.map.Map(AIA_304)
 sun_rad = aia_map.meta['RSUN_OBS']          ## in arcsec
 sun_rad_ref = aia_map.meta['RSUN_REF']/1000 ## in km
 one_arcsec_to_km = sun_rad_ref/sun_rad
-C2_height = 2.5 * sun_rad_ref/1000        ## in Mm
+C2_height = 1.5 * sun_rad_ref/1000        ## in Mm
 cme_t0 = pd.to_datetime('2012/03/12 01:25') ## from cactus
 cme_v = 422                                 ## km/s from cactus
 def eq_h(t,c0,tau,c1,c2,t0):
@@ -84,17 +84,17 @@ print(f'Initial slow rise velocity: {hv[0]} km s-1')
 print(f'Maximum velocity in the AIA FOV: {hv[-1]} km s-1')
 print(f'Acceleration at the onset point: {a_o*1000} m s^-2')
 print(f'Final acceleration: {ha[-1]*1000} m s^-2')
-def eq_t(t_atC2):        ## from chatGPT
-    return c0_opt * np.exp((t_atC2-t0_opt)/ tau_opt) + c1_opt * (t_atC2-t0_opt) + c2_opt - C2_height
-t_atC2_guess = t0_opt    ## t0_opt as a reasonable guess
-from scipy.optimize import fsolve
-t_atC2_solution = fsolve(eq_t, t_atC2_guess)
-t_atC2_solution_dt = t_onset_datetime + timedelta(minutes=t_atC2_solution[0])
+for i in range(1000):
+    hh = eq_h(i, c0_opt, tau_opt, c1_opt, c2_opt, t0_opt)
+    if hh >= C2_height:
+        print(f'waktu {i}, height {hh}, LASCO/C2 {C2_height}')
+        break
+t_atC2_solution = [i]
+t_atC2_solution_dt = start_time + timedelta(minutes=t_atC2_solution[0])
 hv_atC2 = dhdt_f(t_atC2_solution[0],c0=c0_opt,tau=tau_opt,c1=c1_opt,t0=t0_opt)
 hv_atC2 = hv_atC2*1000/60 ## in km/s
 print(f'Arrive at the C2 FOV at {t_atC2_solution_dt} UT with a velocity of {hv_atC2} km/s')
 print(f'CME onset (t0) from Cactus is {cme_t0} UT with a velocity {cme_v} km/s')
-
 param_mid = np.array([[c0_opt,tau_opt, c1_opt, c2_opt,t0_opt, t_onset_datetime, t_minute_onset_model, h_onset_Mm_model, h_onset_arcsec_datay, hv[0], hv[-1], a_o*1000, ha[-1]*1000, t_atC2_solution_dt , cme_t0, hv_atC2, cme_v, ref_line]])
 param = param_mid
 df_param = pd.DataFrame(param, columns=['c0', 'tau', 'c1', 'c2', 't0', 'onset_time', 'onset_time_model', 'onset_h_Mm_model', 'onset_h_arcsec', 'init_slow_v', 'max_v', 'onset_acc', 'end_acc', 't_atC2', 't_atC2_cactus', 'v_atC2', 'v_atC2_cactus', 'ref_line'], index=None)
