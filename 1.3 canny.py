@@ -27,8 +27,8 @@ ang_sep = ang_sep_mid
 ang_sep['h_km'] = ang_sep.h_arcsec*one_arcsec_to_km
 orig_map = plt.colormaps.get('sdoaia304')
 reversed_map = orig_map.reversed()
-
-arr = feature.canny(intensity, sigma=11)
+sig = 8
+arr = feature.canny(intensity, sigma=sig)
 
 fig, ax = plt.subplots()
 plt.rc('xtick', labelsize=12)
@@ -45,7 +45,7 @@ df_coord_edge = df_coord[df_coord.y_arcsec > (df_coord.y_arcsec[:5].max() - 1)]
 df_coord_edge.drop_duplicates(subset=['y_arcsec'], inplace=True)
 os.makedirs('Results/canny', exist_ok=True)
 df_coord_edge = df_coord_edge[df_coord_edge.x_minute >= 120]
-df_coord_edge.to_csv(f'Results/canny/edge_coord_{dtdt}.csv')
+df_coord_edge.to_csv(f'Results/canny/edge_coord_{dtdt}_{sig}.csv')
 
 start_time = dt_intensity.loc[df_coord.x.min()].date
 coord_time = df_coord.x_minute.apply(lambda i:start_time + timedelta(minutes=i))
@@ -78,7 +78,7 @@ ax3.yaxis.set_tick_params(labelright=False)
 ax3.yaxis.set_major_locator(ticker.MultipleLocator(100))
 ax3.yaxis.set_minor_locator(ticker.MultipleLocator(20))
 plt.tight_layout()
-plt.savefig(f'Results/canny/fig_6c_{dtdt}.png', dpi=200)
+plt.savefig(f'Results/canny/fig_6c_{dtdt}_{sig}.png', dpi=200)
 plt.show()
 
 
