@@ -27,7 +27,7 @@ ang_sep = ang_sep_mid
 ang_sep['h_km'] = ang_sep.h_arcsec*one_arcsec_to_km
 orig_map = plt.colormaps.get('sdoaia304')
 reversed_map = orig_map.reversed()
-sig = 8
+sig = 9
 arr = feature.canny(intensity, sigma=sig)
 
 fig, ax = plt.subplots()
