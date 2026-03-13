@@ -7,24 +7,31 @@ import os
 import pandas as pd
 import matplotlib
 matplotlib.use('Agg')    ## don't display plot box
-dtdt = '20120312'        ## YYYYMMDD, usually day of the eruption
+dtdt = '20230420'        ## YYYYMMDD, usually day of the eruption
 ins = 'AIA304'           ## instrument
 data_list = sorted(os.listdir(f'Data/{ins}/{dtdt[:4]}/{dtdt[4:6]}')) ## using 'f' because there is a variable on string
 df = pd.DataFrame()      ## empty dataframe array (only for several columns)
-ht = np.zeros([307,217]) ## empty numpy array (for huge array) with size 307x230 for main line; 307 is length of main lain (guess first), 207 is number of data in data_list
+# ht = np.zeros([201,290]) ## empty numpy array (for huge array) with size 307x230 for main line; 307 is length of main lain (guess first), 207 is number of data in data_list
+ht = None  ## Placeholder. We will define the size dynamically inside the function.
 def height_prom(i):
+    global ht
     AIA_304 = f'Data/{ins}/{dtdt[:4]}/{dtdt[4:6]}/{data_list[i]}'  ## i-th data
     aia_map = sunpy.map.Map(AIA_304)    ## read fits data
-    xlims_world = [-900, -380]*u.arcsec   ## x-coordinte for crop size; use 1.1.0 to get the numbers
-    ylims_world = [-1200, -630]*u.arcsec  ## y-coordinate for crop size; use 1.1.0 to get the numbers
+    xlims_world = [200, 550]*u.arcsec   ## x-coordinte for crop size; use 1.1.0 to get the numbers
+    ylims_world = [750, 1200]*u.arcsec  ## y-coordinate for crop size; use 1.1.0 to get the numbers
     world_coords = SkyCoord(Tx=xlims_world, Ty=ylims_world, frame=aia_map.coordinate_frame)
     pixel_coords_x, pixel_coords_y = aia_map.wcs.world_to_pixel(world_coords)   ## change crop area coordinate so that it can be drawn in AIA coordinate
-    x_start, y_start = -500, -840         ## coordinate of the initial main line on the solar surface
-    x_end, y_end = -875, -1200            ## coordinate of the end main line.
+    x_start, y_start = 340, 905         ## coordinate of the initial main line on the solar surface
+    x_end, y_end = 525, 1200            ## coordinate of the end main line.
     line_coords = SkyCoord([x_start, x_end], [y_start, y_end], unit=(u.arcsec, u.arcsec),
                            frame=aia_map.coordinate_frame)   ## change coordinate of main line so that it can be drawn in AIA coordinate
     intensity_coords = sunpy.map.pixelate_coord_path(aia_map, line_coords)   ## coordinate of the main line on AIA frame
     intensity = sunpy.map.sample_at_coords(aia_map, intensity_coords)        ## intensity passed by main line
+    # --- DYNAMIC ARRAY CREATION STARTS HERE ---
+    if ht is None:
+        # Create array: [length of intensity line, number of total files]
+        ht = np.zeros([len(intensity), len(data_list)])
+        # --- DYNAMIC ARRAY CREATION ENDS HERE ---
     angular_separation = intensity_coords.separation(intensity_coords[0]).to(u.arcsec)   ## distance of points in the main line
     data_date = aia_map.date.value   ## date of i-th data
     df.loc[i, 'date'] = data_date    ## save date of i-th data into empty dataframe array

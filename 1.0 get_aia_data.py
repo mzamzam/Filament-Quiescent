@@ -8,14 +8,14 @@ import requests
 from bs4 import BeautifulSoup
 import os
 
-y = 2012
-m = 3
-d = 12
+y = 2023
+m = 4
+d = 20
 typ= 'AIA304'
 def zfill(x):
     return str(x).zfill(2)
 ## data source: http://jsoc2.stanford.edu/data/aia/synoptic/2012/03/09/H0000/AIA20120309_0000_0304.fits
-for H in range(0,4,1):   ## H means hours, 0 is counted, 4 is not counted, 1 is step
+for H in range(4,24,1):   ## H means hours, 0 is counted, 4 is not counted, 1 is step
     tanggal_aia = f'{y}/{zfill(m)}/{zfill(d)}/H{zfill(H)}00'
     aia_url = f'http://jsoc2.stanford.edu/data/aia/synoptic/{tanggal_aia}'
     page = requests.get(aia_url).text

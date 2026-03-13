@@ -18,7 +18,7 @@ import sunpy.map
 import matplotlib.ticker as ticker
 matplotlib.rcParams.update(matplotlib.rcParamsDefault)
 
-dtdt = '20120312'
+dtdt = '20230420'
 ins = 'AIA304'
 data_list = sorted(os.listdir(f'Data/{ins}/{dtdt[:4]}/{dtdt[4:6]}'))
 AIA_304 = f'Data/{ins}/{dtdt[:4]}/{dtdt[4:6]}/{data_list[50]}'  ## careful on data_list[50]. Don't exceed the max number of data_list.
@@ -58,7 +58,7 @@ ax.imshow(image_binned, cmap=reversed_map, origin='lower', vmax=35, extent=[x_li
 ax.set_ylabel('Distance along slice (arcsec)', fontsize=18)
 ax.set_xlabel('Start time = {}'.format(dt_intensity.date[0].strftime('%Y/%m/%d %H:%M:%S')), fontsize=18)
 
-ax.text(dt_intensity.date[10],450,'(b)',fontsize=20)   ## adjust this! different dataset, different xy-number
+ax.text(dt_intensity.date[10],320,'(b)',fontsize=20)   ## adjust this! different dataset, different xy-number
 
 ax.yaxis.set_minor_locator(ticker.MultipleLocator(10))
 
@@ -78,5 +78,5 @@ ax3 = ax.secondary_yaxis('right')
 ax3.yaxis.set_tick_params(labelright=False)
 ax3.yaxis.set_minor_locator(ticker.MultipleLocator(10))
 os.makedirs('Results/height-time_plot', exist_ok=True)
-plt.savefig(f'Results/height-time_plot/fig_6b_lite_{dtdt}.png',bbox_inches='tight', dpi=100)
+plt.savefig(f'Results/height-time_plot/fig_6b_lite_{dtdt}.png',bbox_inches='tight', dpi=300)
 plt.show()

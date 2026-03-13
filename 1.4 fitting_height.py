@@ -11,8 +11,9 @@ from datetime import timedelta
 import matplotlib.ticker as ticker
 import matplotlib.dates as mdates
 
-dtdt = '20120312'
+dtdt = '20230420'
 ins = 'AIA304'
+sig=9
 data_list = sorted(os.listdir(f'Data/{ins}/{dtdt[:4]}/{dtdt[4:6]}'))
 AIA_304 = f'Data/{ins}/{dtdt[:4]}/{dtdt[4:6]}/{data_list[50]}'
 aia_map = sunpy.map.Map(AIA_304)
@@ -75,8 +76,8 @@ plt.rc('axes', labelsize=12)
 ax.plot(t_minute_model_dt,h_Mm_model,'k')
 ax.set_ylim(0,350)
 ax.set_xlim(start_time, end_time)
-ax.set_ylabel('Height (Mm)', fontsize=18)
-ax.set_xlabel('Start time = {}'.format(start_time.strftime('%Y/%m/%d %H:%M:%S')), fontsize=18)
+ax.set_ylabel('Height (Mm)', fontsize=16)
+ax.set_xlabel('Start time = {}'.format(start_time.strftime('%Y/%m/%d %H:%M:%S')), fontsize=16)
 
 ax.text(dt_intensity.date[9],320,'(d)',fontsize=20)
 
@@ -86,10 +87,11 @@ ax.yaxis.set_minor_locator(ticker.MultipleLocator(10))
 date_format = mdates.DateFormatter('%H:%M')
 ax.xaxis.set_major_formatter(date_format)
 ax.xaxis.set_major_locator(mdates.MinuteLocator(interval=90))
-ax.xaxis.set_tick_params(labelsize=18)
-ax.yaxis.set_tick_params(labelsize=18)
+ax.xaxis.set_tick_params(labelsize=14)
+ax.yaxis.set_tick_params(labelsize=14)
 ax.axvline(t_onset_datetime, color = 'black', ls = 'dotted')
-
+ax.axvline(dt_intensity.date[232],0,1, color = 'black', ls = '--')   ## if want to add vertical line on the graph, uncomment this line.
+print(dt_intensity.date[232])
 ax2 = ax.secondary_xaxis('top')
 ax2.xaxis.set_tick_params(labeltop=False)
 ax2.xaxis.set_major_locator(mdates.MinuteLocator(interval=80))
@@ -98,7 +100,7 @@ ax3 = ax.secondary_yaxis('right')
 ax3.yaxis.set_tick_params(labelright=False)
 ax3.yaxis.set_minor_locator(ticker.MultipleLocator(10))
 os.makedirs('Results/fitting_height', exist_ok=True)
-plt.savefig(f'Results/fitting_height/fig_6d_{dtdt}.png',bbox_inches='tight', dpi=100)
+plt.savefig(f'Results/fitting_height/fig_6d_{dtdt}.png',bbox_inches='tight', dpi=300)
 plt.show()
 
 

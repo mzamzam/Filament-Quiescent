@@ -8,7 +8,7 @@ import matplotlib.dates as mdates
 import matplotlib.ticker as ticker
 from datetime import timedelta
 
-dtdt = '20120312'
+dtdt = '20230420'
 ins = 'AIA304'
 data_list = sorted(os.listdir(f'Data/{ins}/{dtdt[:4]}/{dtdt[4:6]}'))
 AIA_304 = f'Data/{ins}/{dtdt[:4]}/{dtdt[4:6]}/{data_list[50]}'
@@ -52,10 +52,10 @@ coord_time = df_coord.x_minute.apply(lambda i:start_time + timedelta(minutes=i))
 coord_edge_time = df_coord_edge.x_minute.apply(lambda i:start_time + timedelta(minutes=i))
 ax.plot(coord_time, df_coord.y_arcsec, color='cyan', marker='.', linestyle='None', markersize=2)
 ax.plot(coord_edge_time, df_coord_edge.y_arcsec, color='red', marker='.', linestyle='None', markersize=2)
-ax.set_ylabel('Height (arcsec)', fontsize=18)
-ax.set_xlabel('Start time = {}'.format(start_time.strftime('%Y/%m/%d %H:%M:%S')), fontsize=18)
+ax.set_ylabel('Height (arcsec)', fontsize=16)
+ax.set_xlabel('Start time = {}'.format(start_time.strftime('%Y/%m/%d %H:%M:%S')), fontsize=16)
 
-ax.text(dt_intensity.date[7],450,'(c)',fontsize=20)
+ax.text(dt_intensity.date[7],320,'(c)',fontsize=20)
 
 ax.yaxis.set_minor_locator(ticker.MultipleLocator(10))
 
@@ -63,11 +63,11 @@ ax.xaxis.set_minor_locator(mdates.MinuteLocator(interval=20))
 date_format = mdates.DateFormatter('%H:%M')
 ax.xaxis.set_major_formatter(date_format)
 ax.xaxis.set_major_locator(mdates.MinuteLocator(interval=90))
-ax.xaxis.set_tick_params(labelsize=18)
-ax.yaxis.set_tick_params(labelsize=18)
+ax.xaxis.set_tick_params(labelsize=14)
+ax.yaxis.set_tick_params(labelsize=14)
 ax.yaxis.set_major_locator(ticker.MultipleLocator(100))
-# ax.axvline(dt_intensity.date[190],0,1, color = 'black', ls = '--')   ## if want to add vertical line on the graph, uncomment this line.
-
+ax.axvline(dt_intensity.date[232],0,1, color = 'black', ls = '--')   ## if want to add vertical line on the graph, uncomment this line.
+print(dt_intensity.date[232])
 ax2 = ax.secondary_xaxis('top')
 ax2.xaxis.set_tick_params(labeltop=False)
 ax2.xaxis.set_minor_locator(mdates.MinuteLocator(interval=20)) 
@@ -78,7 +78,7 @@ ax3.yaxis.set_tick_params(labelright=False)
 ax3.yaxis.set_major_locator(ticker.MultipleLocator(100))
 ax3.yaxis.set_minor_locator(ticker.MultipleLocator(20))
 plt.tight_layout()
-plt.savefig(f'Results/canny/fig_6c_{dtdt}_{sig}.png', dpi=200)
+plt.savefig(f'Results/canny/fig_6c_{dtdt}_{sig}.png', dpi=300)
 plt.show()
 
 

@@ -14,19 +14,25 @@ import astropy.units as u
 import matplotlib.pyplot as plt
 import math
 
-dtdt = '20120312'
+dtdt = '20230420'
 ins = 'AIA304'
 data_list = sorted(os.listdir(f'Data/{ins}/{dtdt[:4]}/{dtdt[4:6]}'))
 print(f'Number of data: {len(data_list)}')
 print(f'First data: {data_list[0]}')
 print(f'Last data: {data_list[-1]}')
-i = 100
+i = 400
 print(f'Current data: {data_list[i]}')
 AIA_304 = f'Data/{ins}/{dtdt[:4]}/{dtdt[4:6]}/{data_list[i]}'
 aia_map = sunpy.map.Map(AIA_304)
-coords = SkyCoord(Tx=(-900, -380) * u.arcsec,Ty=(-1200, -630) * u.arcsec,frame=aia_map.coordinate_frame)
-x_start, y_start = -500, -840   ## coordinate for the initial line at the solar surface
-x_end, y_end = -875, -1200       ##coordinate for the end line
+# coords = SkyCoord(Tx=(-900, -380) * u.arcsec,Ty=(-1200, -630) * u.arcsec,frame=aia_map.coordinate_frame)
+# x_start, y_start = -500, -840   ## coordinate for the initial line at the solar surface
+# x_end, y_end = -875, -1200       ##coordinate for the end line
+coords = SkyCoord(Tx=(200, 550) * u.arcsec,Ty=(750, 1200) * u.arcsec,frame=aia_map.coordinate_frame)
+x_start, y_start = 340, 905 #coordinate for the initial line at the solar surface
+x_end, y_end = 525, 1200 #coordinate for the end line
+# xe_above, ye_above = -2300, 3500 #blue
+# xe_below, ye_below = -2300, 3500 #green
+
 #xe_above, ye_above = -2300, 3900 #blue
 #xe_below, ye_below = -2300, 3900 #green
 #xs_above, ys_above = xs_below, ys_below = x_start, y_start
@@ -68,5 +74,6 @@ aia_map.draw_quadrangle(coords, axes=ax,edgecolor="yellow",linestyle="-",linewid
 ax.plot_coord(intensity_coords, lw=1, color='magenta')
 #ax.plot_coord(intensity_coords_above, lw=1, color='blue')
 #ax.plot_coord(intensity_coords_below, lw=1, color='green')
-ax.legend()
+# ax.legend()
 plt.show()
+

@@ -19,14 +19,18 @@ from skimage import feature
 from datetime import timedelta
 from scipy.optimize import curve_fit
 import sympy as smp
-dtdt = '20120312'
+dtdt = '20230420'
 # dtdt = '20230420'
 ins = 'AIA304'
 data_list = os.listdir(f'Data/{ins}/{dtdt[:4]}/{dtdt[4:6]}')
+print(data_list)
 df = pd.DataFrame()
-ht = np.zeros([307,len(data_list)]) #307 is an array size of black line.
-ht_above = np.zeros([318,len(data_list)]) #315 is an array size of blue line
-ht_below = np.zeros([297,len(data_list)]) #299 is an array of green line
+# ht = np.zeros([201,len(data_list)]) #307 is an array size of black line.
+# ht_above = np.zeros([195,len(data_list)]) #315 is an array size of blue line
+# ht_below = np.zeros([208,len(data_list)]) #299 is an array of green line
+ht = None
+ht_above=None
+ht_below=None
 ## number of array should determined manually.
 ## you cannot assume all lines have the same array. It will raise an error.
 plt.rc('font', family='serif', serif='Times')
@@ -36,7 +40,7 @@ reversed_map = orig_map.reversed()
 save_fd = 'Results/all'
 os.makedirs(f'{save_fd}', exist_ok=True)
 
-example_case = 174
+example_case = 10
 
 in_fd = "Results/intensity_along_line"
 os.makedirs(f'{in_fd}', exist_ok=True)
@@ -45,44 +49,64 @@ def plot_6a(i, x): #type x='save_all' to save all figures, x = 'save_one' to sav
     This function is modified version of 1.1 intensity_along_line.py
     
     '''
-    AIA_304 = f'Data/AIA304/2012/03/{data_list[i]}'
+    global ht
+    global ht_above
+    global ht_below
+
+    AIA_304 = f'Data/AIA304/{dtdt[0:4]}/{dtdt[4:6]}/{data_list[i]}'
     aia_map = sunpy.map.Map(AIA_304)
     
-    xlims_world = [-900, -380]*u.arcsec  #determined manually
-    ylims_world = [-1200, -630]*u.arcsec #determined manually
+    xlims_world = [200, 550]*u.arcsec  #determined manually
+    ylims_world = [750, 1200]*u.arcsec #determined manually
     world_coords = SkyCoord(Tx=xlims_world, Ty=ylims_world, frame=aia_map.coordinate_frame)
     pixel_coords_x, pixel_coords_y = aia_map.wcs.world_to_pixel(world_coords)
     
-    x_start, y_start = -500, -840 #coordinate for the initial line at the solar surface
-    x_end, y_end = -875, -1200 #coordinate for the end line 
-    xe_above, ye_above = -902, -1200 #it should be offset by 2 degree
-    xe_below, ye_below = -850, -1200 #it should be offset by 2 degree#it should be offset by 2 degree
+    x_start, y_start = 300, 905 #coordinate for the initial line at the solar surface
+    x_end, y_end = 525, 1200 #coordinate for the end line
+    xe_above, ye_above = 510, 1200 #it should be offset by 2 degree
+    xe_below, ye_below = 540, 1200 #it should be offset by 2 degree#it should be offset by 2 degree
     
     line_coords = SkyCoord([x_start, x_end], [y_start, y_end], unit=(u.arcsec, u.arcsec),
                            frame=aia_map.coordinate_frame)
     intensity_coords = sunpy.map.pixelate_coord_path(aia_map, line_coords)
     intensity = sunpy.map.sample_at_coords(aia_map, intensity_coords)
     angular_separation = intensity_coords.separation(intensity_coords[0]).to(u.arcsec)
-    
+
     line_coords_above = SkyCoord([x_start, xe_above], [y_start, ye_above], unit=(u.arcsec, u.arcsec),
                            frame=aia_map.coordinate_frame)
     intensity_coords_above = sunpy.map.pixelate_coord_path(aia_map, line_coords_above)
     intensity_above = sunpy.map.sample_at_coords(aia_map, intensity_coords_above)
     angular_separation_above = intensity_coords_above.separation(intensity_coords_above[0]).to(u.arcsec)
-    
+
     line_coords_below = SkyCoord([x_start, xe_below], [y_start, ye_below], unit=(u.arcsec, u.arcsec),
                            frame=aia_map.coordinate_frame)
     intensity_coords_below = sunpy.map.pixelate_coord_path(aia_map, line_coords_below)
     intensity_below = sunpy.map.sample_at_coords(aia_map, intensity_coords_below)
     angular_separation_below = intensity_coords_below.separation(intensity_coords_below[0]).to(u.arcsec)
-    
+    # --- FIXED DYNAMIC ARRAY CREATION ---
+    if ht is None:
+        ht = np.zeros([len(intensity), len(data_list)])
+
+    if ht_above is None:
+        # Fix: Assign to ht_above, not ht
+        ht_above = np.zeros([len(intensity_above), len(data_list)])
+
+    if ht_below is None:
+        # Fix: Assign to ht_below, not ht
+        ht_below = np.zeros([len(intensity_below), len(data_list)])
+    # ------------------------------------
+
     data_date = aia_map.date.value
     df.loc[i, 'date'] = data_date
+
+    # Use slicing to handle potential 1-pixel mismatches in path length
+    ht[:min(len(intensity), ht.shape[0]), i] = intensity[:ht.shape[0]]
+    ht_above[:min(len(intensity_above), ht_above.shape[0]), i] = intensity_above[:ht_above.shape[0]]
+    ht_below[:min(len(intensity_below), ht_below.shape[0]), i] = intensity_below[:ht_below.shape[0]]
     
-    ht[:,i] = intensity
-    ht_above[:,i] = intensity_above
-    ht_below[:,i] = intensity_below
-    
+    # ht[:,i] = intensity
+    # ht_above[:,i] = intensity_above
+    # ht_below[:,i] = intensity_below
     # orig_map=matplotlib.colormaps.get_cmap('sdoaia304')
     # reversed_map = orig_map.reversed()
     fig = plt.figure()
@@ -96,15 +120,15 @@ def plot_6a(i, x): #type x='save_all' to save all figures, x = 'save_one' to sav
     ax1.plot_coord(SkyCoord(-845*u.arcsec, -700*u.arcsec, frame=aia_map.coordinate_frame), marker='$(a)$', color='black', markersize=15)
     if x == 'save_all':
         os.makedirs(f'{in_fd}/fig_6a_{dtdt}', exist_ok=True)
-        plt.savefig(f'{in_fd}/fig_6a_{dtdt}/{AIA_304[-26:-5]}.png', bbox_inches='tight', dpi=200)
+        plt.savefig(f'{in_fd}/fig_6a_{dtdt}/{AIA_304[-26:-5]}.png', bbox_inches='tight', dpi=300)
         plt.close()
     elif x == 'save_one':
         nama_file = 'fig_6a_{AIA_304[-26:-5]}.png'
-        plt.savefig(f'{save_fd}/{nama_file}', bbox_inches='tight', dpi=200)
+        plt.savefig(f'{save_fd}/{nama_file}', bbox_inches='tight', dpi=300)
         print(f'1.1 Saving intenisty along line fig ("{save_fd}{nama_file}").')
-        plt.close()
+        # plt.close()
     plt.show()
-    plt.close()
+    # plt.close()
     
     return AIA_304, aia_map, intensity, data_date, intensity_coords, ht, ht_above, ht_below, angular_separation, angular_separation_above, angular_separation_below
 
@@ -117,7 +141,7 @@ def plot_6a(i, x): #type x='save_all' to save all figures, x = 'save_one' to sav
 # np.save(f'{in_fd}/intensity_below_{dtdt}', ht_below)
 
 ## an instance to load sdoaia304 cmap, only use aia_map variabel
-AIA_304, aia_map, inte, dd, inco, ht, ht_ab, ht_b, ans, ans_ab, ans_be =  plot_6a(example_case, 'save_on')
+AIA_304, aia_map, inte, dd, inco, ht, ht_ab, ht_b, ans, ans_ab, ans_be =  plot_6a(example_case, 'save_all')
 # df_ang_sep = pd.DataFrame(ans, columns=['h_arcsec'])
 # df_ang_sep_ab = pd.DataFrame(ans_ab, columns=['h_arcsec'])
 # df_ang_sep_be = pd.DataFrame(ans_be, columns=['h_arcsec'])
@@ -136,7 +160,7 @@ intensity = intensity_be
 ref_line = 'below' # middle, above or below
 
 dt_format = '%Y-%m-%dT%H:%M:%S.%f'
-dt_intensity = pd.read_csv(f"{in_fd}/datetime_intensity_{dtdt}.csv", index_col='Unnamed: 0',parse_dates=['date'], date_format=dt_format)
+dt_intensity = pd.read_csv(f"{in_fd}/datetime_intensity_{dtdt}.csv",parse_dates=['date'], date_format=dt_format)
 dt_intensity['minute'] = dt_intensity['date'].apply(lambda i:i - dt_intensity['date'][0])
 dt_intensity['minute'] = dt_intensity['minute'].apply(lambda i:i.seconds/60)
 ang_sep_mid = pd.read_csv(f"{in_fd}/ang_sep_{dtdt}.csv")
@@ -169,12 +193,14 @@ def plot_param():
     date_format = mdates.DateFormatter('%H:%M')
     ax.xaxis.set_major_formatter(date_format)
     ax.xaxis.set_major_locator(mdates.MinuteLocator(interval=80))
-    ax.xaxis.set_tick_params(labelsize=18)
-    ax.yaxis.set_tick_params(labelsize=18)
+    ax.xaxis.set_tick_params(labelsize=14)
+    ax.yaxis.set_tick_params(labelsize=14)
     ax.yaxis.set_major_locator(ticker.MultipleLocator(100))
     
     ax.axvline(dt_intensity.date[example_case],0,1, color = 'black', ls = '--')
-    
+    ax.axvline(dt_intensity.date[232], 0, 1, color='black',
+               ls='--')  ## if want to add vertical line on the graph, uncomment this line.
+    print(dt_intensity.date[232])
     ax2 = ax.secondary_xaxis('top')
     ax2.xaxis.set_tick_params(labeltop=False)
     ax2.xaxis.set_major_locator(mdates.MinuteLocator(interval=80))
@@ -199,20 +225,22 @@ def plot_6b(x): #type x='save' to save figure, otherwise won't save anything
     ax.imshow(imp, cmap=reversed_map, origin='lower', vmax=35, extent=[x_lim[0],x_lim[1],0,ang_sep.h_arcsec.max()], aspect='auto')
     ax.set_ylim(0,470)
 
-    ax.set_ylabel('Distance along slice (arcsec)', fontsize=18)
-    ax.set_xlabel('Start time = {}'.format(dt_intensity.date[0].strftime('%Y/%m/%d %H:%M:%S')), fontsize=18)
-    
+    ax.set_ylabel('Distance along slice (arcsec)', fontsize=16)
+    ax.set_xlabel('Start time = {}'.format(dt_intensity.date[0].strftime('%Y/%m/%d %H:%M:%S')), fontsize=16)
+    ax.axvline(dt_intensity.date[232], 0, 1, color='black',
+               ls='--')  ## if want to add vertical line on the graph, uncomment this line.
+    print(dt_intensity.date[232])
     ax.text(dt_intensity.date[10],410,'(b)',fontsize=20)
     ax.xaxis.set_minor_locator(mdates.MinuteLocator(interval=20)) 
     ax2.xaxis.set_minor_locator(mdates.MinuteLocator(interval=20))
     if x == 'save':
         name_file = f'fig_6b_wtline_{AIA_304[-26:-15]}.png'
-        plt.savefig(f'{save_fd}/{name_file}',bbox_inches='tight', dpi=100)
+        plt.savefig(f'{save_fd}/{name_file}',bbox_inches='tight', dpi=300)
         plt.close()
         print(f'1.2 Saving height-time fig without fitting line ("{save_fd}{name_file}").')
     plt.show()
 
-plot_6b('sav')
+plot_6b('save')
 
 arr = feature.canny(intensity, sigma=11)
 ## Detect contour all edges from array numpy with shape 182x307
@@ -222,7 +250,9 @@ df_coord['y_arcsec'] = df_coord['y'].apply(lambda i:ang_sep.loc[i].h_arcsec)
 df_coord['x_minute'] = df_coord['x'].apply(lambda i: dt_intensity.loc[i].minute)
 
 df_coord = df_coord.sort_values(by=['x_minute'])
-df_coord_edge = df_coord[df_coord.y_arcsec > (df_coord.y_arcsec[:5].max() - 1)]
+# df_coord_edge = df_coord[df_coord.y_arcsec > (df_coord.y_arcsec[:5].max() - 1)]
+# Add .copy() at the end to make it a standalone DataFrame
+df_coord_edge = df_coord[df_coord.y_arcsec > (df_coord.y_arcsec[:5].max() - 1)].copy()
 df_coord_edge.drop_duplicates(subset=['y_arcsec'], inplace=True)
 # df_coord_edge.to_csv('Results/canny_edge/edge_coord.csv')
 
@@ -247,16 +277,20 @@ def plot_6c(x): #type x='save' to save figure, otherwise won't save anything
     ax2.xaxis.set_minor_locator(mdates.MinuteLocator(interval=20))
     if x == 'save':
         name_file = f'fig_6c_{AIA_304[-26:-15]}.png'
-        plt.savefig(f'{save_fd}/{name_file}',bbox_inches='tight', dpi=100)
+        plt.savefig(f'{save_fd}/{name_file}',bbox_inches='tight', dpi=300)
         plt.close()
         print(f'1.3 Saving edge detection ("{save_fd}{name_file}").')
     plt.show()
 
-plot_6c('sav')
+# plot_6c('sav')
 
-df_coord_edge['x_second'] = df_coord_edge.x_minute*60
-df_coord_edge['y_Mm'] = df_coord_edge['y'].apply(lambda i:ang_sep.loc[i].h_km)/1000
-df_coord_edge['y_km'] = df_coord_edge['y'].apply(lambda i:ang_sep.loc[i].h_km)
+# df_coord_edge['x_second'] = df_coord_edge.x_minute*60
+# df_coord_edge['y_Mm'] = df_coord_edge['y'].apply(lambda i:ang_sep.loc[i].h_km)/1000
+# df_coord_edge['y_km'] = df_coord_edge['y'].apply(lambda i:ang_sep.loc[i].h_km)
+# Instead of df_coord_edge['x_second'] = ...
+df_coord_edge.loc[:, 'x_second'] = df_coord_edge.x_minute * 60
+df_coord_edge.loc[:, 'y_Mm'] = df_coord_edge['y'].apply(lambda i: ang_sep.loc[i].h_km) / 1000
+df_coord_edge.loc[:, 'y_km'] = df_coord_edge['y'].apply(lambda i: ang_sep.loc[i].h_km)
 df_coord_edge.drop_duplicates(subset=['x'], inplace=True)
 
 start_slice = 0
@@ -268,7 +302,7 @@ def model_h(t,c0,tau,c1,c2,t0):
     return c0 * np.exp((t-t0)/ tau) + c1 * (t-t0) + c2
 def t_ons(tau,c1,c0,t0):
     return tau*np.log(c1*tau/c0)+t0
-
+'''
 popt, pcov = curve_fit(model_h, t_data, h_data_mm, p0=[7,31,0.1,89,211])
 c0_opt, tau_opt,c1_opt,c2_opt,t0_opt = popt
 t_model = np.linspace(min(t_data), max(t_data), int(max(t_data)-min(t_data)))
@@ -286,7 +320,7 @@ onset_height = df_coord_edge[df_coord_edge.x_minute >= onset_t].y_Mm.values[0]
 onset_height_arcsec = df_coord_edge[df_coord_edge.x_minute >= onset_t].y_arcsec.values[0]
 onset_h = h_model_mm[t_model >= onset_t][0]
 onset_h_arcsec = df_coord_edge[df_coord_edge.y_Mm >= onset_h].y_arcsec.values[0]
-
+'''
 def plot_6d(x):
     '''
     This function is modified version of 1.4 fitting_height.py
@@ -304,13 +338,13 @@ def plot_6d(x):
     
     if x == 'save':
         name_file = f'fig_6d_{AIA_304[-26:-15]}.png'
-        plt.savefig(f'{save_fd}/{name_file}',bbox_inches='tight', dpi=100)
+        plt.savefig(f'{save_fd}/{name_file}',bbox_inches='tight', dpi=300)
         plt.close()
         print(f'1.4 Saving fitting height ("{save_fd}{name_file}").')
     plt.show()
 
-plot_6d('sav')
-
+# plot_6d('sav')
+'''
 t,c0,tau,c1,c2,t0 = smp.symbols('t c0 tau c1 c2 t0', real=True)
 eq_h = c0 * smp.exp((t-t0)/tau) + c1*(t-t0) + c2
 dhdt = smp.diff(eq_h,t)
@@ -318,7 +352,7 @@ dhdt = smp.diff(eq_h,t)
 dhdt_f = smp.lambdify((t,c0,tau,c1,t0), dhdt)
 hv = dhdt_f(t_model,c0=c0_opt,tau=tau_opt,c1=c1_opt,t0=t0_opt)
 hv = hv*1000/60 ## in km/s
-
+'''
 def plot_6e(x):
     '''
     This function is modified version of 1.4.1 fitting_velocity.py
@@ -336,13 +370,13 @@ def plot_6e(x):
     
     if x == 'save':
         name_file = f'fig_6e_{AIA_304[-26:-15]}.png'
-        plt.savefig(f'{save_fd}/{name_file}',bbox_inches='tight', dpi=100)
+        plt.savefig(f'{save_fd}/{name_file}',bbox_inches='tight', dpi=300)
         plt.close()
         print(f'1.5 Saving fitting velocity ("{save_fd}{name_file}").')
     plt.show()
 
-plot_6e('sav')
-
+# plot_6e('sav')
+'''
 ### Calculate Acceleration
 d2hdt2 = smp.diff(eq_h,t,2)
 d2hdt2_f = smp.lambdify((t,c0,tau,c1,t0), d2hdt2)
@@ -351,7 +385,7 @@ ha = ha *1000/60/60
 a_o = ha[model_t[model_t >= onset_time].index[0]] 
 ## because of ha shape is equal to model_t not df_coord_edge
 ## we using model_t instead of df_coord_edge
-
+'''
 def plot_6f(x):
     '''
     This function is modified version of 1.4.2 fitting_acceleration.py
@@ -370,18 +404,18 @@ def plot_6f(x):
     
     if x == 'save':
         name_file = f'fig_6f_{AIA_304[-26:-15]}.png'
-        plt.savefig(f'{save_fd}/{name_file}',bbox_inches='tight', dpi=100)
+        plt.savefig(f'{save_fd}/{name_file}',bbox_inches='tight', dpi=300)
         plt.close()
         print(f'1.6 Saving fitting acceleration ("{save_fd}{name_file}").')
     plt.show()
 
-plot_6f('sav')
+# plot_6f('sav')
 
 def plot_6b_comp(x):
     '''
     This function is modified version of 1.6 ht_plot_comp.py
     
-    '''
+
     fig, ax, ax2 = plot_param()
     h_data_arcsec = df_coord_edge.y_arcsec[start_slice:end_slice]
     popt, pcov = curve_fit(model_h, t_data, h_data_arcsec, p0=[7,31,0.1,89,211]) #p0=[355,128,0,336]
@@ -419,25 +453,25 @@ def plot_6b_comp(x):
     ax2.xaxis.set_minor_locator(mdates.MinuteLocator(interval=20))
     if x == 'save':
         name_file = f'fig_6b_comp_{AIA_304[-26:-15]}.png'
-        plt.savefig(f'{save_fd}/{name_file}',bbox_inches='tight', dpi=100)
+        plt.savefig(f'{save_fd}/{name_file}',bbox_inches='tight', dpi=300)
         plt.close()
         print(f'1.2 Saving height-time fig with fitting line ("{save_fd}{name_file}").')
     plt.show()
+'''
+# plot_6b_comp('sav')
 
-plot_6b_comp('sav')
-
-print(f'var c0: {c0_opt}')
-print(f'var tau: {tau_opt}')
-print(f'var c1: {c1_opt}')
-print(f'var c2: {c2_opt}')
-print(f'var t0: {t0_opt}')
-print('onset time: {} UT'.format(onset_time.strftime('%Y/%m/%d %H:%M')))
-print(f'onset height: {onset_h} Mm')
-print(f'onset height: {onset_h_arcsec} arcsec')
-print(f'Initial slow rise velocity: {hv[0]} km s-1')
-print(f'Maximum velocity in the AIA FOV: {hv[-1]} km s-1')
-print(f'Acceleration at the onset point: {a_o*1000} m s^-2')
-print(f'Final acceleration: {ha[-1]*1000} m s^-2')
-param = np.array([[c0_opt,tau_opt, c1_opt, c2_opt,t0_opt, onset_time, onset_t, onset_h, onset_h_arcsec, hv[0], hv[-1], a_o*1000, ha[-1]*1000, ref_line]])
-df_param = pd.DataFrame(param, columns=['c0', 'tau', 'c1', 'c2', 't0', 'onset_time', 'onset_t_minute', 'onset_h_mm', 'onset_h_arcsec', 'init_slow_v', 'max_v', 'onset_acc', 'end_acc', 'ref_line'], index=None)
-df_param.to_csv(f'{save_fd}/parameter.csv', mode='a', index=False, header=False)
+# print(f'var c0: {c0_opt}')
+# print(f'var tau: {tau_opt}')
+# print(f'var c1: {c1_opt}')
+# print(f'var c2: {c2_opt}')
+# print(f'var t0: {t0_opt}')
+# print('onset time: {} UT'.format(onset_time.strftime('%Y/%m/%d %H:%M')))
+# print(f'onset height: {onset_h} Mm')
+# print(f'onset height: {onset_h_arcsec} arcsec')
+# print(f'Initial slow rise velocity: {hv[0]} km s-1')
+# print(f'Maximum velocity in the AIA FOV: {hv[-1]} km s-1')
+# print(f'Acceleration at the onset point: {a_o*1000} m s^-2')
+# print(f'Final acceleration: {ha[-1]*1000} m s^-2')
+# param = np.array([[c0_opt,tau_opt, c1_opt, c2_opt,t0_opt, onset_time, onset_t, onset_h, onset_h_arcsec, hv[0], hv[-1], a_o*1000, ha[-1]*1000, ref_line]])
+# df_param = pd.DataFrame(param, columns=['c0', 'tau', 'c1', 'c2', 't0', 'onset_time', 'onset_t_minute', 'onset_h_mm', 'onset_h_arcsec', 'init_slow_v', 'max_v', 'onset_acc', 'end_acc', 'ref_line'], index=None)
+# df_param.to_csv(f'{save_fd}/parameter.csv', mode='a', index=False, header=False)

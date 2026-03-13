@@ -16,7 +16,7 @@ from skimage import feature
 from datetime import timedelta
 from scipy.optimize import curve_fit
 
-dtdt = '20120312'
+dtdt = '20230420'
 ins = 'AIA304'
 data_list = sorted(os.listdir(f'Data/{ins}/{dtdt[:4]}/{dtdt[4:6]}'))
 AIA_304 = f'Data/{ins}/{dtdt[:4]}/{dtdt[4:6]}/{data_list[50]}'
@@ -48,7 +48,7 @@ dt_intensity['minute'] = dt_intensity['date'].apply(lambda i:i - dt_intensity['d
 dt_intensity['minute'] = dt_intensity['minute'].apply(lambda i:i.seconds/60)
 start_time = dt_intensity.loc[1].date
 end_time = dt_intensity.loc[dt_intensity.shape[0]-1].date
-sig = 8
+sig = 9
 edge_coord_mid = pd.read_csv(f"Results/canny/edge_coord_{dtdt}_{sig}.csv", index_col='Unnamed: 0')
 
 def model_ht(angular_separation, edge_coordinate):
@@ -107,11 +107,13 @@ def model_ht(angular_separation, edge_coordinate):
                 ax.set_ylabel('Distance along slice (arcsec)', fontsize=18)
                 ax.set_xlabel('Start time = {}'.format(start_time.strftime('%Y/%m/%d %H:%M:%S')), fontsize=18)
                 #ax.set_ylim(0, 470)
-                ax.text(dt_intensity.date[10], 420, '(b)', fontsize=20)
+                ax.text(dt_intensity.date[10], 320, '(b)', fontsize=20)
                 ax.text(t_onset_datetime - timedelta(minutes=45), h_onset_arcsec_datay + 13,
                         f'{round(h_onset_Mm_model)} Mm', fontsize=13)
                 ax.plot(t_onset_datetime, h_onset_arcsec_datay, 'k*', ms=10)
-
+                ax.axvline(dt_intensity.date[232], 0, 1, color='black',
+                           ls='--')  ## if want to add vertical line on the graph, uncomment this line.
+                print(dt_intensity.date[232])
                 ax.yaxis.set_minor_locator(ticker.MultipleLocator(10))
 
                 ax.xaxis.set_minor_locator(mdates.MinuteLocator(interval=20))
@@ -131,7 +133,7 @@ def model_ht(angular_separation, edge_coordinate):
                 ax3.yaxis.set_tick_params(labelright=False)
                 ax3.yaxis.set_minor_locator(ticker.MultipleLocator(10))
                 os.makedirs('Results/ht_plot_comp', exist_ok=True)
-                plt.savefig(f'Results/ht_plot_comp/{sig}_fig_6b_{dtdt}_{i}.png', bbox_inches='tight', dpi=100)
+                plt.savefig(f'Results/ht_plot_comp/{sig}_fig_6b_{dtdt}_{i}.png', bbox_inches='tight', dpi=300)
                 #plt.show()
                 plt.close()
             except IndexError:

@@ -9,7 +9,7 @@ import sunpy.map
 from scipy.optimize import curve_fit
 from datetime import timedelta
 
-dtdt = '20120312'
+dtdt = '20230420'
 ins = 'AIA304'
 data_list = sorted(os.listdir(f'Data/{ins}/{dtdt[:4]}/{dtdt[4:6]}'))
 AIA_304 = f'Data/{ins}/{dtdt[:4]}/{dtdt[4:6]}/{data_list[50]}'
@@ -24,13 +24,14 @@ def eq_h(t,c0,tau,c1,c2,t0):
 def t_ons(tau,c1,c0,t0):
     ## this is equation (2) from Su et al (2015)
     return tau*np.log(c1*tau/c0)+t0
+sig=9
 ang_sep = pd.read_csv(f"Results/intensity_along_line/ang_sep_{dtdt}.csv")
 ang_sep['h_km'] = ang_sep.h_arcsec*round(one_arcsec_to_km)
 dt_intensity = pd.read_csv(f"Results/intensity_along_line/datetime_intensity_{dtdt}.csv",parse_dates=['date'], date_format='%Y-%m-%dT%H:%M:%S.%f')
 dt_intensity['minute'] = dt_intensity['date'].apply(lambda i:i - dt_intensity['date'][0])
 dt_intensity['minute'] = dt_intensity['minute'].apply(lambda i:i.seconds/60)
 start_time = dt_intensity.loc[1].date
-edge_coord = pd.read_csv(f"Results/canny/edge_coord_{dtdt}.csv", index_col='Unnamed: 0')
+edge_coord = pd.read_csv(f"Results/canny/edge_coord_{dtdt}_{sig}.csv", index_col='Unnamed: 0')
 edge_coord['x_second'] = edge_coord.x_minute*60
 edge_coord['y_Mm'] = edge_coord['y'].apply(lambda i:ang_sep.loc[i].h_km)/1000
 edge_coord.drop_duplicates(subset=['x'], inplace=True)

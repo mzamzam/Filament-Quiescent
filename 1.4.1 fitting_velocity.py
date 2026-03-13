@@ -9,8 +9,9 @@ import matplotlib.ticker as ticker
 import matplotlib.dates as mdates
 import sympy as smp
 
-dtdt = '20120312'
+dtdt = '20230420'
 ins = 'AIA304'
+sig=9
 data_list = sorted(os.listdir(f'Data/{ins}/{dtdt[:4]}/{dtdt[4:6]}'))
 AIA_304 = f'Data/{ins}/{dtdt[:4]}/{dtdt[4:6]}/{data_list[50]}'
 aia_map = sunpy.map.Map(AIA_304)
@@ -32,7 +33,7 @@ dt_intensity['minute'] = dt_intensity['date'].apply(lambda i:i - dt_intensity['d
 dt_intensity['minute'] = dt_intensity['minute'].apply(lambda i:i.seconds/60)
 start_time = dt_intensity.loc[1].date
 end_time = dt_intensity.loc[dt_intensity.shape[0]-1].date
-edge_coord_mid = pd.read_csv(f"Results/canny/edge_coord_{dtdt}.csv", index_col='Unnamed: 0')
+edge_coord_mid = pd.read_csv(f"Results/canny/edge_coord_{dtdt}_{sig}.csv", index_col='Unnamed: 0')
 def model_v(angular_separation, edge_coordinate):
     ang_sep = angular_separation
     ang_sep['h_km'] = ang_sep.h_arcsec*round(one_arcsec_to_km)
@@ -81,20 +82,20 @@ plt.rc('axes', labelsize=12)
 ax.plot(t_minute_model_dt,hv, color='k')
 ax.set_ylim(0,120)
 ax.set_xlim(start_time, end_time)
-ax.set_ylabel('Velocity (km $s^-1$)', fontsize=18)
-ax.set_xlabel('Start time = {}'.format(start_time.strftime('%Y/%m/%d %H:%M:%S')), fontsize=18)
+ax.set_ylabel('Velocity (km $s^{-1}$)', fontsize=16)
+ax.set_xlabel('Start time = {}'.format(start_time.strftime('%Y/%m/%d %H:%M:%S')), fontsize=16)
 ax.text(dt_intensity.date[7],110,'(e)',fontsize=20)
-
 ax.yaxis.set_minor_locator(ticker.MultipleLocator(5))
 
 ax.xaxis_date()
 date_format = mdates.DateFormatter('%H:%M')
 ax.xaxis.set_major_formatter(date_format)
 ax.xaxis.set_major_locator(mdates.MinuteLocator(interval=90))
-ax.xaxis.set_tick_params(labelsize=18)
-ax.yaxis.set_tick_params(labelsize=18)
+ax.xaxis.set_tick_params(labelsize=14)
+ax.yaxis.set_tick_params(labelsize=14)
 ax.axvline(t_onset_datetime, color = 'black', ls = 'dotted')
-
+ax.axvline(dt_intensity.date[232],0,1, color = 'black', ls = '--')   ## if want to add vertical line on the graph, uncomment this line.
+print(dt_intensity.date[232])
 ax2 = ax.secondary_xaxis('top')
 ax2.xaxis.set_tick_params(labeltop=False)
 ax2.xaxis.set_major_locator(mdates.MinuteLocator(interval=80))
@@ -103,7 +104,7 @@ ax3 = ax.secondary_yaxis('right')
 ax3.yaxis.set_tick_params(labelright=False)
 ax3.yaxis.set_minor_locator(ticker.MultipleLocator(5))
 os.makedirs('Results/fitting_velocity/', exist_ok=True)
-plt.savefig(f'Results/fitting_velocity/fig_6e_{dtdt}.png',bbox_inches='tight', dpi=100)
+plt.savefig(f'Results/fitting_velocity/fig_6e_{dtdt}.png',bbox_inches='tight', dpi=300)
 plt.show()
 
 
